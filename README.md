@@ -26,11 +26,11 @@ For example, turning off a Nexa switch (which uses the Arctech protocol) might c
 The same object can be sent the other way, from the TCP clients to the server, to send the corresponding RF command (f.ex. to turn something on):
 ```nodejs
 {
-    protocol: 'arctech',
-    model: 'selflearning',
-    house: 15492321,
-    unit: 2,
-    method: 1, // Corresponding to the TELLSTICK_TURNON method
+	protocol: 'arctech',
+	model: 'selflearning',
+	house: 15492321,
+	unit: 2,
+	method: 1, // Corresponding to the TELLSTICK_TURNON method
 	repeat: 5 // The number of times to repeat the package
 }
 ```
