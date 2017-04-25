@@ -6,7 +6,7 @@ Replacement service for telldus-core
 This project requires a working FTDI-driver. Follow the instructions on getting [node-ftdi](https://github.com/thomaschaaf/node-ftdi/) up and running.
 
 ## What
-The aim of this project is to replace[telldus-core](https://github.com/telldus/telldus) with a service providing a simple and concise interface for the [Tellstick Classic](http://telldus.se/produkt/tellstick-classic-gateway-433mhz/) and [Tellstick Duo](http://telldus.se/produkt/tellstick-duo/) products.
+The aim of this project is to replace [telldus-core](https://github.com/telldus/telldus) with a service providing a simple and concise interface for the [Tellstick Classic](http://telldus.se/produkt/tellstick-classic-gateway-433mhz/) and [Tellstick Duo](http://telldus.se/produkt/tellstick-duo/) products.
 
 Most likely, the interface will be TCP/IP, with data exchanged as [ndjson](http://ndjson.org/) (with each package being a "line"). How the objects will look will depend on the unit with which the Tellstick is communicating.
 
