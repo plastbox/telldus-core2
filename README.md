@@ -82,7 +82,7 @@ Regardless, I want a 433MHz tranceiver controlled by locally hosted software. Th
 - Possibly implement auto-discovery using mdns
 
 ### "tdtool" / tdcat
-The original software has a command line utility called tdtool which allows for listing of and sending commands to registred devices. As telldus-core2 won't include device management, simple cli tools to access auto-discovered instances telldus-core2 might be included, modelled after the inspired [wscat](https://github.com/websockets/wscat).
+The original software has a command line utility called tdtool which allows for listing of and sending commands to registred devices. As telldus-core2 won't include device management, a simple cli tool to talk to auto-discovered instances of telldus-core2 might be included, modelled after the inspired [wscat](https://github.com/websockets/wscat).
 ```
 tdcat
 Connected to 127.0.0.1:5234
