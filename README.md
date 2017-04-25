@@ -50,9 +50,9 @@ Data from temperature and humidity sensors (like those sold at Clas Ohlson) spea
 
 ## Why
 
-This project came about because Tellstick Classic/Duo are older products which Telldus has been less-than-amazing at providing documentation and feedback for (beyond an outdated wiki and a source code dump). The main software, telldus-core, hasn't received any updates since 2013 despite the products relying on it still being sold. In my opinion, it also fails at separation-of-concerns, rolling package transmission, interfacing, and device management into the same pirce of software.
+This project came about because Tellstick Classic/Duo are older products which Telldus has been less-than-amazing at providing documentation and feedback for (beyond an outdated wiki and a source code dump). The main software, telldus-core, hasn't received any updates since 2013 despite the products relying on it still being sold. In my opinion, it also fails at separation-of-concerns, rolling package transmission, interfacing, and device management into the same piece of software.
 
-Regardless, I want a 433MHz tranceiver controlled by locally hosted software, and the Tellstick Duo could be exactly that.
+Regardless, I want a 433MHz tranceiver controlled by locally hosted software. The Tellstick Duo is exactly that, it just needs better software.
 
 ## Todo:
 
