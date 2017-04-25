@@ -5,9 +5,9 @@ Replacement service for telldus-core
 
 This project requires a working FTDI-driver. Follow the instructions on getting [node-ftdi](https://github.com/thomaschaaf/node-ftdi/) up and running.
 
-## General
+# General
 
-# What
+## What
 The aim of this project is to replace[telldus-core](https://github.com/telldus/telldus) with a service providing a simple and concise interface for the [Tellstick Classic](http://telldus.se/produkt/tellstick-classic-gateway-433mhz/) and [Tellstick Duo](http://telldus.se/produkt/tellstick-duo/) products.
 
 Most likely, the interface will be TCP/IP, with data exchanged as [ndjson](http://ndjson.org/) (with each package being a "line"). How the objects will look will depend on the unit with which the Tellstick is communicating.
@@ -50,15 +50,15 @@ Data from temperature and humidity sensors (like those sold at Clas Ohlson) spea
 }
 ```
 
-# Why
+## Why
 
 This project came about because Tellstick Classic/Duo are older products which Telldus has been less-than-amazing at providing documentation and feedback for (beyond an outdated wiki and a source code dump). The main software, telldus-core, hasn't received any updates since 2013 despite the products relying on it still being sold. In my opinion, it also fails at separation-of-concerns, rolling package transmission, interfacing, and device management into the same pirce of software.
 
 Regardless, I want a 433MHz tranceiver controlled by locally hosted software, and the Tellstick Duo could be exactly that.
 
-## Todo:
+# Todo:
 
-# Core:
+## Core:
 - Settle on package exchange format
 - Implement protocol logic from [telldus-core/service](https://github.com/telldus/telldus/tree/master/telldus-core/service)
   - Brateck
@@ -83,7 +83,7 @@ Regardless, I want a 433MHz tranceiver controlled by locally hosted software, an
 - Implement simple TCP/IP [ndjson](http://ndjson.org/) interface
 - Possibly implement auto-discovery using mdns
 
-# "tdtool" / tdcat
+## "tdtool" / tdcat
 The original software has a command line utility called tdtool which allows for listing of and sending commands to registred devices. As telldus-core2 won't include device management, simple cli tools to access auto-discovered instances telldus-core2 might be included, modelled after the inspired [wscat](https://github.com/websockets/wscat).
 ```
 tdcat
