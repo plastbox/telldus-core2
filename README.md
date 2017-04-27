@@ -1,6 +1,3 @@
-## Disclaimer:
-This software is in no way affiliated with Telldus, Proove, or any other commercial entity.
-
 # telldus-core2
 Replacement service for telldus-core
 
@@ -94,3 +91,7 @@ Connected to 192.168.10.231:5234
 > {"controller":"A6WQ3CU3","protocol":"arctech","model":"selflearning","house":15492321,"unit":2,"method":1,"repeat":5}
 ...etc
 ```
+
+
+## Disclaimer:
+This software is in no way affiliated with Telldus, Proove, or any other commercial entity.
