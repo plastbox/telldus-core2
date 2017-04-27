@@ -1,3 +1,6 @@
+## Disclaimer:
+This software is in no way affiliated with Telldus, Proove, or any other commercial entity.
+
 # telldus-core2
 Replacement service for telldus-core
 
