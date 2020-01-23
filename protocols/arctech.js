@@ -11,6 +11,63 @@ const methods = {
 	TELLSTICK_STOP: 512
 };
 
+function normalizeDeviceId(params) {
+	return `arctech/${params.house}${params.unit && !params.group ? '/' + params.unit : ''}`;
+}
+function normalizeDevice(params) {
+	var pubs = [];
+	var device = {
+		//group: params.house,
+	};
+	if(!params.group) {
+		//device.unit = params.unit;
+	}
+	var deviceId = normalizeDeviceId(params);
+	
+	if(['turnon', 'turnoff', 'dim'].indexOf(params.method) > -1) {
+		device.power = params.method == 'turnon' || (params.method == 'dim' && params.level > 0) ? 'on' : 'off';
+		pubs.push({
+			topic: deviceId + '/power',
+			payload: params.method == 'turnon' || (params.method == 'dim' && params.level > 0) ? 'on' : 'off'
+		});
+	}
+
+	if(params.method == 'dim') {
+		pubs.push({
+			topic: deviceId + '/brightness',
+			payload: ~~params.level
+		});
+	}
+	return pubs;
+}
+function updateDevice(topic, value) {
+	// arctech/1234/power/set, 1
+	// arctech/1234/1/power/set, 1
+	var [protocol, house, unit, prop] = topic.split('/');
+	if(prop == 'set') {
+		prop = unit;
+		unit = null;
+	}
+	var params = {
+		protocol: 'arctech',
+		model: 'selflearning',
+		house: house,
+		unit: unit
+	};
+	if(prop == 'brightness') {
+		params.method = 'dim';
+		params.level = value;
+	}
+	else if(prop == 'power') {
+		params.method = value == 'on' || value == 1 ? 'turnon' : 'turnoff';
+	}
+	if(!params.method) {
+		return false;
+	}
+	return params;
+}
+
+
 function decodeDataSelfLearning(allData) {
 	var house = 0,
 		unit = 0,
@@ -19,19 +76,19 @@ function decodeDataSelfLearning(allData) {
 		methodsAvailable = ['turnoff', 'turnon'];
 
 	//house = allData & 0xFFFFFFC0;
-	house = allData		& 0b11111111111111111111111111000000;
+	house = allData	& 0b11111111111111111111111111000000;
 	house >>= 6;
 
 	//group = allData & 0x20;
-	group = allData		& 0b00100000;
+	group = allData	& 0b00100000;
 	group >>= 5;
 
 	//method = allData & 0x10;
-	method = allData	& 0b00010000;
+	method = allData & 0b00010000;
 	method >>= 4;
 
 	//unit = allData & 0xF;
-	unit = allData		& 0b00001111;
+	unit = allData	& 0b00001111;
 	unit++;
 
 	if(house < 1 || house > 67108863 || unit < 1 || unit > 16 || typeof methodsAvailable[method] === 'undefined') {
@@ -91,12 +148,17 @@ function getStringSelflearningForCode(intHouse, intCode, method, level) {
 	var arrMessage = ['T'.charCodeAt(0), 127, 255, 24, 1];
 	//var arrMessage = ['T'.charCodeAt(0), 135, 255, 28, 1];
 	// const char START[] = {'T',130,255,26,24,0};
-
+	if(intCode !== null) {
+		intCode--;
+	}
+	if(typeof method === 'string') {
+		method = methods['TELLSTICK_' + method.toUpperCase()];
+	}
 	arrMessage.push(method == methods.TELLSTICK_DIM ? 147 : 132);  // Number of pulses
 
-	var m = '',
-		i;
-	for (i = 25; i >= 0; --i) {
+	var m = '';
+	var i;
+	for(i = 25; i >= 0; --i) {
 		m += ( intHouse & 1 << i ? '10' : '01' );
 	}
 	if(intCode !== null) {
@@ -107,23 +169,25 @@ function getStringSelflearningForCode(intHouse, intCode, method, level) {
 	}
 
 	// On/off
-	if (method == methods.TELLSTICK_DIM) {
+	if(method == methods.TELLSTICK_DIM) {
 		m += '00';
-	} else if (method == methods.TELLSTICK_TURNOFF) {
+	}
+	else if(method == methods.TELLSTICK_TURNOFF) {
 		m += '01';
-	} else if (method == methods.TELLSTICK_TURNON) {
+	}
+	else if(method == methods.TELLSTICK_TURNON) {
 		m += '10';
-	} else {
-		return "";
+	}else {
+		return [];
 	}
 
-	for (i = 3; i >= 0; --i) {
+	for(i = 3; i >= 0; --i) {
 		m += ( intCode & 1 << i ? '10' : '01' );
 	}
 
-	if (method == methods.TELLSTICK_DIM) {
+	if(method == methods.TELLSTICK_DIM) {
 		var newLevel = level / 16;
-		for (i = 3; i >= 0; --i) {
+		for(i = 3; i >= 0; --i) {
 			m += (newLevel & 1 << i ? '10' : '01');
 		}
 	}
@@ -132,14 +196,15 @@ function getStringSelflearningForCode(intHouse, intCode, method, level) {
 	// Add this to make it even, otherwise the following loop will not work
 	m += '0';
 	var code = 9;  // b1001, startcode
-	for (i = 0; i < m.length; ++i) {
+	for(i = 0; i < m.length; ++i) {
 		code <<= 4;
-		if (m[i] == '1') {
+		if(m[i] == '1') {
 			code |= 8;  // b1000
-		} else {
+		}
+		else {
 			code |= 10;  // b1010
 		}
-		if (i % 2 == 0) {
+		if(i % 2 == 0) {
 			arrMessage.push(code);
 			code = 0;
 		}
@@ -169,7 +234,7 @@ function getStringCodeSwitch(intHouse, intCode, method) {
 		intCode = 7; // According to the telldus-core source code, a bell command is always sent to unit 7. Go figure.
 	}
 	strReturn += getCodeSwitchTuple(intHouse);
-	strReturn += getCodeSwitchTuple(getIntParameter(intUnit, 1, 16));
+	strReturn += getCodeSwitchTuple(0);//getIntParameter(intUnit, 1, 16));
 
 	if (method == methods.TELLSTICK_TURNON) {
 		strReturn += '$k$k$kk$$kk$$kk$$k+';
@@ -184,7 +249,7 @@ function getStringCodeSwitch(intHouse, intCode, method) {
 	else {
 		return "";
 	}
-	return strReturn;
+	return strReturn.split('');
 }
 
 function getArctechCommand(params) {
@@ -213,13 +278,10 @@ function getArctechCommand(params) {
 			if(defaultParams[key].indexOf(params[key]) === -1) {
 				throw(`Invalid value (${params[key]}) for parameter "${key}" in getArctechCommand call.`);
 			}
-			 
 			return true;
 		}
-		
 	});
-	console.log(params);
-	
+
 	var command = [];
 	if(params.model === 'selflearning') {
 		command = getStringSelflearningForCode(params.house, params.unit, params.method, params.level);
@@ -227,14 +289,20 @@ function getArctechCommand(params) {
 	else if(params.model === 'codeswitch') {
 		command = getStringCodeSwitch(params.house, params.unit, params.method);
 	}
-	command.unshift(/*'R'.charCodeAt(0),*/ params.repeat);
-	return command;
+	//command.unshift('R'.charCodeAt(0), params.repeat);
+	return Buffer.from(command);
 }
 
 module.exports = {
 	decodeData: function(params) {
+		if(typeof params === 'string') {
+			params = params.substr(params[0] === '+' ? 2 : 0).split(';').filter(p=>!!p).reduce((carry, param) => {
+				var [key, val] = param.split(':');
+				carry[key] = val;
+				return carry; // selflearning
+			}, {});
+		}
 		if(params.model == 'selflearning') {
-			// selflearning
 			return Object.assign(params, decodeDataSelfLearning(parseInt(params.data.substr(2), 16)));
 		}
 		else {
@@ -243,8 +311,48 @@ module.exports = {
 		}
 	},
 	getCommand: getArctechCommand,
-	methods: methods
+	methods: methods,
+
+	normalizeDevice: normalizeDevice,
+	updateDevice: updateDevice
+};
+
+if(require.main === module) {
+	console.log(Buffer.from(getStringSelflearningForCode(117, 1, methods.TELLSTICK_TURNON)));
+	process.exit();
+
+	//console.log(module.exports.decodeData('+Wprotocol:arctech;model:selflearning;data:0x25A0009B;'));
+	//console.log(getArctechCommand(module.exports.decodeData('+Wprotocol:arctech;model:selflearning;data:0x25A0009B;')));
+
+	//console.log(getArctechCommand({model:'selflearning', house: 15402826, unit: 3, method: methods.TELLSTICK_TURNON, repeat:5}));
+	//console.log(getArctechCommand({model:'codeswitch', house: 15402826, unit: 3, method: methods.TELLSTICK_TURNON, repeat:5}));
+
+	var dev = {
+		protocol: 'arctech',
+		model: 'selflearning',
+		house: '15402826',
+		unit: '3',
+		level: '242',
+		repeat: 5,
+		method: 'dim'
+	};
+	var normDev = normalizeDevice(dev);
+	console.log('Normalize:', normalizeDeviceId(dev), dev, normDev);
+
+	console.log('Set power on:', updateDevice('arctech/15402826/3/power/set', 1));
+	console.log('Set dim 127:', updateDevice('arctech/15402826/3/brightness/set', 127));
+	console.log('Set dim 0:', updateDevice('arctech/15402826/3/brightness/set', 0));
+
+
+	var grp = {
+		protocol: 'arctech',
+		model: 'selflearning',
+		house: '15402826',
+		group: 1,
+		level: '242',
+		repeat: 5,
+		method: 'dim'
+	};
+	var normGrp = normalizeDevice(grp)
+	console.log('Normalize:', normalizeDeviceId(grp), grp, normalizeDevice(grp));
 }
-//console.log(getArctechCommand({model:'selflearning', house: 15402826, unit: 3, method: methods.TELLSTICK_TURNON, repeat:5}));
-//console.log(getArctechCommand({model:'codeswitch', house: 15402826, unit: 3, method: methods.TELLSTICK_TURNON, repeat:5}));
-//console.log(module.exports.decodeData('+Wprotocol:arctech;model:selflearning;data:0x25A0009B;'));

@@ -17,6 +17,8 @@
   },
   "homepage": "https://github.com/plastbox/telldus-core2#readme",
   "dependencies": {
-    "ftdi": "^1.2.1"
+    "binary-split": "^1.0.5",
+    "ftdi": "git+https://github.com/thomaschaaf/node-ftdi.git",
+    "mqtt": "^3.0.0"
   }
 }
