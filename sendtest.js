@@ -2,6 +2,12 @@ const ftdi = require('../hello_world/hello.js');
 const fs = require('fs');
 const { Transform } = require('stream');
 
+const protocols = fs.readdirSync('./protocols/').reduce((carry, protocolFile) => {
+	//console.log(protocolFile.substr(0, protocolFile.lastIndexOf('.')));
+	carry[protocolFile.substr(0, protocolFile.lastIndexOf('.'))] = require('./protocols/' + protocolFile);
+	return carry;
+}, {});
+
 ftdi.find(0x1781, 0x0c31, function(err, devices) {
 	if(err) {
 		throw(err);
@@ -17,9 +23,9 @@ ftdi.find(0x1781, 0x0c31, function(err, devices) {
 	    	stopbits: 1,
 	    	parity: 'none'
 		}, function(err) {
-		var static = Buffer.from('54 7F FF 18 01 84 9A 8A 88 A8 A8 AA 88 AA 88 A8 AA 8A 8A 8A 8A 88 A8 A8 AA 88 AA 8A 88 AA 88 AA 8A 88 AA 8A 88 AA 8A 2B'.replace(/ /g, ''), 'hex');
+		var static = protocols['everflourish'].getCommand(117, 1, methods.TELLSTICK_TURNON);
 		console.log('Send static command:', static);
-		td.write(static, function(err, bytesSent) {
+		td.write(Buffer.concat([static, Buffer.from([13, 10])]), function(err, bytesSent) {
 			if(err) { throw err; }
     	console.log('Bytes sent:', bytesSent);
 		});
