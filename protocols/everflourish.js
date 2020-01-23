@@ -18,12 +18,15 @@ function getStringSelflearningForCode(intHouse, intCode, method) {
 	var action = 0;
 	switch(method) {
 		case methods.TELLSTICK_TURNON:
+		case 'turnon':
 			action = 15;
 			break;
 		case methods.TELLSTICK_TURNOFF:
+		case 'turnoff':
 			action = 0;
 			break;
 		case methods.TELLSTICK_LEARN:
+		case 'learn':
 			action = 10;
 			break;
 		default:
