@@ -28,7 +28,8 @@ function getStringSelflearningForCode(intHouse, intCode, method) {
 			break;
 		default:
 			throw(`Unsupported method "${method}" in getStringSelflearningForCode call.`);
-	};
+	}
+	intCode--;
 
 	var ssss = 85;
 	var sssl = 84;  // 0
@@ -38,28 +39,25 @@ function getStringSelflearningForCode(intHouse, intCode, method) {
 	
 	var strCode = [
 		'R'.charCodeAt(0), 5,
-		'T'.charCodeAt(0), 114, 60, 1, 1, 105, ssss, ssss];
+		'T'.charCodeAt(0), 114, 60, 1, 1, 105, ssss, ssss
+	];
 
 	intHouse = (intHouse << 2) | intCode;
 	var check = calculateChecksum(intHouse);
-
 	var i;
+
 	for(i = 15; i >= 0; i--) {
-		//console.log('house', intHouse, i, (intHouse >> i) & 0x01 );
 		strCode.push(bits[(intHouse >> i)&0x01]);
 	}
 	for(i = 3; i >= 0; i--) {
-		//console.log('check', check, i, (check >> i) & 0x01 );
 		strCode.push(bits[(check >> i)&0x01]);
 	}
 	for(i = 3; i >= 0; i--) {
-		//console.log('action', action, i, (action >> i) & 0x01 );
 		strCode.push(bits[(action >> i)&0x01]);
 	}
 
 	strCode.push(ssss, '+'.charCodeAt(0));
-//console.log(strCode.length);
-console.log(Buffer.from(strCode).toString('hex').toUpperCase());
+
 	return Buffer.from(strCode);
 }
 
@@ -92,45 +90,42 @@ function calculateChecksum(x) {
 		}
 		bit = bit << 1;
 	}
-console.log('calculateChecksum', x, res);
+
 	return res;
 }
 
-function decodeData(dataMsg) {
-	console.log('everflourish::decodeData', dataMsg);
-	var allData = dataMsg;
-	var house = 0;
-	var unit = 0;
-	var method = 0;
+function decodeData(allData) {
+	var house = (allData & 0xFFFC00) >> 10;
+	var unit = ((allData & 0x300) >> 8) + 1;
+	var method = allData & 0xF;
+	
+	const methodsAvailable = {
+		15: 'turnon',
+		0: 'turnoff',
+		10: 'learn'
+	};
 
-	house = allData & 0xFFFC00;
-	house >>= 10;
-
-	unit = allData & 0x300;
-	unit >>= 8;
-	unit++;  // unit from 1 to 4
-
-	method = allData & 0xF;
-	console.log(house, unit, method)
-	if(house > 16383 || unit < 1 || unit > 4) {
+	if(house > 16383 || unit < 1 || unit > 4 || !methodsAvailable[method]) {
 		// not everflourish
-		return "";
+		console.error('Could not decode Everflourish:', allData, {
+			class: 'command',
+			protocol: 'everflourish',
+			model: 'selflearning',
+			house: house,
+			unit: unit,
+			method:	method
+		});
+		return {error: 'Could not decode'};
 	}
-
-	/*std::stringstream retString;
-	retString << "class:command;protocol:everflourish;model:selflearning;house:" << house << ";unit:" << unit << ";method:";
-	if(method == 0) {
-		retString << "turnoff;";
-	} else if(method == 15) {
-		retString << "turnon;";
-	} else if(method == 10) {
-		retString << "learn;";
-	} else {
-		// not everflourish
-		return "";
-	}
-
-	return retString.str();*/
+	
+	return {
+		class: 'command',
+		protocol: 'everflourish',
+		model: 'selflearning',
+		house: house,
+		unit: unit,
+		method:	methodsAvailable[method]
+	};
 }
 
 function normalizeDeviceId(params) {
@@ -257,7 +252,7 @@ module.exports = {
 if(require.main === module) {
 	console.log(getStringSelflearningForCode(117, 1, methods.TELLSTICK_TURNOFF));
 	//console.log(getStringSelflearningForCode(117, 1, methods.TELLSTICK_LEARN));
-	//console.log(module.exports.decodeData('+Wprotocol:everflourish;data:0xC1D29C;'));
+	console.log(module.exports.decodeData('+Wprotocol:everflourish;data:0xC1D29C;'));
 	process.exit();
 	//console.log(module.exports.decodeData('+Wprotocol:arctech;model:selflearning;data:0x25A0009B;'));
 	//console.log(getArctechCommand(module.exports.decodeData('+Wprotocol:arctech;model:selflearning;data:0x25A0009B;')));
